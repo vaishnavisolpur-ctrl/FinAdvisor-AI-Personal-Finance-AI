@@ -1,0 +1,224 @@
+{
+    "timestamp": "2026-09-30 11:02:21",
+    "environment": "Scikit-Learn, Pandas, NumPy, Python 3.10",
+    "models": {
+        "expense_classifier": {
+            "model_name": "NLP TF-IDF + Logistic Regression Classifier",
+            "train_samples": 1920,
+            "test_samples": 480,
+            "accuracy": 1.0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1_score": 1.0,
+            "classes": [
+                "Bills",
+                "Education",
+                "Entertainment",
+                "Food",
+                "Healthcare",
+                "Others",
+                "Shopping",
+                "Transport"
+            ],
+            "confusion_matrix": [
+                [
+                    60,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0
+                ],
+                [
+                    0,
+                    60,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0
+                ],
+                [
+                    0,
+                    0,
+                    60,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0
+                ],
+                [
+                    0,
+                    0,
+                    0,
+                    60,
+                    0,
+                    0,
+                    0,
+                    0
+                ],
+                [
+                    0,
+                    0,
+                    0,
+                    0,
+                    60,
+                    0,
+                    0,
+                    0
+                ],
+                [
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    60,
+                    0,
+                    0
+                ],
+                [
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    60,
+                    0
+                ],
+                [
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    60
+                ]
+            ],
+            "classification_report": {
+                "Bills": {
+                    "precision": 1.0,
+                    "recall": 1.0,
+                    "f1-score": 1.0,
+                    "support": 60.0
+                },
+                "Education": {
+                    "precision": 1.0,
+                    "recall": 1.0,
+                    "f1-score": 1.0,
+                    "support": 60.0
+                },
+                "Entertainment": {
+                    "precision": 1.0,
+                    "recall": 1.0,
+                    "f1-score": 1.0,
+                    "support": 60.0
+                },
+                "Food": {
+                    "precision": 1.0,
+                    "recall": 1.0,
+                    "f1-score": 1.0,
+                    "support": 60.0
+                },
+                "Healthcare": {
+                    "precision": 1.0,
+                    "recall": 1.0,
+                    "f1-score": 1.0,
+                    "support": 60.0
+                },
+                "Others": {
+                    "precision": 1.0,
+                    "recall": 1.0,
+                    "f1-score": 1.0,
+                    "support": 60.0
+                },
+                "Shopping": {
+                    "precision": 1.0,
+                    "recall": 1.0,
+                    "f1-score": 1.0,
+                    "support": 60.0
+                },
+                "Transport": {
+                    "precision": 1.0,
+                    "recall": 1.0,
+                    "f1-score": 1.0,
+                    "support": 60.0
+                },
+                "accuracy": 1.0,
+                "macro avg": {
+                    "precision": 1.0,
+                    "recall": 1.0,
+                    "f1-score": 1.0,
+                    "support": 480.0
+                },
+                "weighted avg": {
+                    "precision": 1.0,
+                    "recall": 1.0,
+                    "f1-score": 1.0,
+                    "support": 480.0
+                }
+            }
+        },
+        "expense_predictor": {
+            "model_name": "Random Forest Expense Regressor",
+            "train_samples": 1152,
+            "test_samples": 288,
+            "mae": 2923.92,
+            "rmse": 4010.7,
+            "r2_score": 0.9487,
+            "mape_pct": 8.0,
+            "feature_importances": {
+                "monthly_income": 0.0123,
+                "lag_1_expense": 0.9374,
+                "lag_2_expense": 0.0066,
+                "lag_3_expense": 0.0058,
+                "rolling_3m_mean": 0.0157,
+                "rolling_3m_std": 0.0056,
+                "essential_ratio": 0.006,
+                "month_sin": 0.005,
+                "month_cos": 0.0055
+            },
+            "test_actuals_sample": [
+                65686.81,
+                30694.86,
+                29750.42,
+                32164.08,
+                37235.34,
+                22846.89,
+                49303.8,
+                19455.38,
+                14595.24,
+                59967.46
+            ],
+            "test_preds_sample": [
+                64171.24,
+                29213.82,
+                28350.47,
+                42150.99,
+                32132.99,
+                21458.67,
+                43913.22,
+                20115.34,
+                14789.9,
+                64815.56
+            ]
+        },
+        "anomaly_detector": {
+            "model_name": "Isolation Forest Anomaly Detector",
+            "total_samples": 5000,
+            "contamination_rate": 0.04,
+            "anomalies_flagged": 199,
+            "normal_flagged": 4801,
+            "min_decision_score": -0.1482,
+            "max_decision_score": 0.2528,
+            "mean_decision_score": 0.1919
+        }
+    }
+}
