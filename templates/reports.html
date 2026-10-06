@@ -1,0 +1,206 @@
+{% extends "base.html" %}
+
+{% block title %}Monthly Financial Audit Report - AI-Powered Personal Finance Advisor{% endblock %}
+{% block page_heading %}Monthly Financial Report{% endblock %}
+{% block page_subheading %}Comprehensive audit statement, category allocation, predictive forecasts, and recommendations{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4 no-print">
+    <div class="small text-muted">
+        Generated on <strong>{{ report_date }}</strong> for <strong>{{ user.name }}</strong>
+    </div>
+    <div class="d-flex gap-2">
+        <button class="btn btn-primary-custom" onclick="window.print();">
+            <i class="bi bi-printer me-1"></i> Print / Save as PDF
+        </button>
+        <a href="{{ url_for('export_csv') }}" class="btn btn-outline-success">
+            <i class="bi bi-file-earmark-spreadsheet me-1"></i> Export Data CSV
+        </a>
+    </div>
+</div>
+
+<!-- Printable Audit Report Card -->
+<div class="fin-card p-4 p-md-5 bg-white border shadow-sm">
+    <!-- Header with Branding & User Metadata -->
+    <div class="d-flex justify-content-between align-items-start border-bottom pb-4 mb-4">
+        <div>
+            <div class="d-flex align-items-center gap-2 mb-2">
+                <div class="rounded-3 bg-primary text-white d-flex align-items-center justify-content-center" style="width: 38px; height: 38px;">
+                    <i class="bi bi-cpu-fill fs-5"></i>
+                </div>
+                <div>
+                    <h4 class="fw-bold mb-0 text-dark">FinAdvisor AI</h4>
+                    <small class="text-muted">Intelligent Wealth & Spending Audit</small>
+                </div>
+            </div>
+            <div class="small text-secondary mt-2">
+                <div>Client Name: <strong>{{ user.name }}</strong></div>
+                <div>Account Email: <strong>{{ user.email }}</strong></div>
+                <div>Declared Monthly Income: <strong>₹{{ "{:,.2f}".format(user.monthly_income) }}</strong></div>
+            </div>
+        </div>
+
+        <div class="text-end">
+            <span class="badge bg-primary text-white px-3 py-2 mb-2">CONFIDENTIAL REPORT</span>
+            <div class="small text-muted">Statement Date: {{ report_date }}</div>
+            <div class="small text-muted">Audit Cycle: Current Financial Year</div>
+        </div>
+    </div>
+
+    <!-- Executive Summary Section -->
+    <div class="mb-5">
+        <h5 class="fw-bold text-dark mb-3"><i class="bi bi-cash-stack text-primary me-2"></i>1. Cashflow Executive Summary</h5>
+        <div class="row g-3">
+            <div class="col-md-3 col-6">
+                <div class="p-3 border rounded-3 bg-light text-center">
+                    <small class="text-muted text-uppercase fw-semibold" style="font-size: 0.72rem;">Total Inflows</small>
+                    <div class="fs-4 fw-bold text-success mt-1">₹{{ "{:,.2f}".format(summary.total_income) }}</div>
+                </div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="p-3 border rounded-3 bg-light text-center">
+                    <small class="text-muted text-uppercase fw-semibold" style="font-size: 0.72rem;">Total Outflows</small>
+                    <div class="fs-4 fw-bold text-danger mt-1">₹{{ "{:,.2f}".format(summary.total_expense) }}</div>
+                </div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="p-3 border rounded-3 bg-light text-center">
+                    <small class="text-muted text-uppercase fw-semibold" style="font-size: 0.72rem;">Net Cumulative Savings</small>
+                    <div class="fs-4 fw-bold text-primary mt-1">₹{{ "{:,.2f}".format(summary.net_savings) }}</div>
+                </div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="p-3 border rounded-3 bg-light text-center">
+                    <small class="text-muted text-uppercase fw-semibold" style="font-size: 0.72rem;">Effective Savings Rate</small>
+                    <div class="fs-4 fw-bold text-dark mt-1">{{ summary.savings_rate }}%</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Category Spending Share Table -->
+    <div class="mb-5">
+        <h5 class="fw-bold text-dark mb-3"><i class="bi bi-pie-chart text-primary me-2"></i>2. Category Expenditure Breakdown</h5>
+        <div class="table-responsive">
+            <table class="table table-bordered table-sm align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>Category</th>
+                        <th class="text-end">Total Amount (₹)</th>
+                        <th class="text-end">Share (%)</th>
+                        <th>Recommended Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% set total_exp = summary.total_expense %}
+                    {% for cat, amt in cat_totals.items() %}
+                    {% set pct = (amt / total_exp * 100) if total_exp > 0 else 0 %}
+                    <tr>
+                        <td class="fw-semibold">{{ cat }}</td>
+                        <td class="text-end">₹{{ "{:,.2f}".format(amt) }}</td>
+                        <td class="text-end">{{ "{:.1f}".format(pct) }}%</td>
+                        <td>
+                            {% if pct > 35 %}
+                                <span class="badge bg-warning text-dark">High Volume</span>
+                            {% elif amt == 0 %}
+                                <span class="text-muted small">None</span>
+                            {% else %}
+                                <span class="badge bg-light text-secondary border">Normal Proportion</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- ML Expense Forecast & Anomaly Log -->
+    <div class="row g-4 mb-5">
+        <div class="col-md-6">
+            <h5 class="fw-bold text-dark mb-3"><i class="bi bi-cpu text-primary me-2"></i>3. Machine Learning Forecast</h5>
+            <div class="p-3 border rounded-3 bg-light">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="text-secondary small">Predicted Next-Month Outflow:</span>
+                    <strong class="fs-5 text-primary">₹{{ "{:,.2f}".format(prediction.predicted_expense) }}</strong>
+                </div>
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="text-secondary small">Confidence Tolerance Range:</span>
+                    <span>₹{{ "{:,.0f}".format(prediction.lower_bound) }} &mdash; ₹{{ "{:,.0f}".format(prediction.upper_bound) }}</span>
+                </div>
+                <div class="d-flex justify-content-between align-items-center">
+                    <span class="text-secondary small">Spending Velocity Direction:</span>
+                    <span class="badge bg-info-subtle text-info border">{{ prediction.trend }}</span>
+                </div>
+                <small class="text-muted d-block mt-2 pt-2 border-top" style="font-size: 0.72rem;">
+                    {{ prediction.explanation }}
+                </small>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <h5 class="fw-bold text-dark mb-3"><i class="bi bi-shield-exclamation text-danger me-2"></i>4. Detected Anomalies (Audit Flag)</h5>
+            <div class="p-3 border rounded-3 bg-light">
+                {% if anomalies %}
+                    <ul class="list-unstyled mb-0 small">
+                        {% for a in anomalies[:3] %}
+                        <li class="mb-2 pb-2 border-bottom">
+                            <div class="d-flex justify-content-between fw-semibold text-danger">
+                                <span>{{ a.description }}</span>
+                                <span>₹{{ "{:,.2f}".format(a.amount) }}</span>
+                            </div>
+                            <div class="text-muted" style="font-size: 0.75rem;">{{ a.anomaly_reason }}</div>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <div class="text-success small py-2">
+                        <i class="bi bi-check-circle me-1"></i> No abnormal expenditures detected in transaction ledger.
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Savings Goals Progress -->
+    <div class="mb-5">
+        <h5 class="fw-bold text-dark mb-3"><i class="bi bi-flag text-primary me-2"></i>5. Savings Goal Milestone Portfolio</h5>
+        <div class="table-responsive">
+            <table class="table table-bordered table-sm align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>Goal Title</th>
+                        <th class="text-end">Target (₹)</th>
+                        <th class="text-end">Current (₹)</th>
+                        <th class="text-end">Progress (%)</th>
+                        <th>Target Date</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for g in goals %}
+                    <tr>
+                        <td class="fw-semibold">{{ g.title }}</td>
+                        <td class="text-end">₹{{ "{:,.0f}".format(g.target_amount) }}</td>
+                        <td class="text-end">₹{{ "{:,.0f}".format(g.current_amount) }}</td>
+                        <td class="text-end fw-bold">{{ g.progress_pct }}%</td>
+                        <td>{{ g.target_date or 'Flexible' }}</td>
+                        <td>
+                            <span class="badge {% if g.status == 'completed' %}bg-success{% else %}bg-primary{% endif %}">
+                                {{ g.status|capitalize }}
+                            </span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Official Non-Professional Advice Disclaimer -->
+    <div class="p-3 bg-light border rounded-3 text-muted small" style="font-size: 0.74rem;">
+        <strong>Legal & Academic Compliance:</strong> {{ budget.disclaimer }}
+        This document represents an automated diagnostic report generated by the AI-Powered Personal Finance Advisor platform.
+    </div>
+</div>
+{% endblock %}

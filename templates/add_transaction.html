@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+
+{% block title %}Add Transaction - AI-Powered Personal Finance Advisor{% endblock %}
+{% block page_heading %}Add Financial Record{% endblock %}
+{% block page_subheading %}Record income or expense with real-time AI category inference and anomaly auditing{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="fin-card">
+            <div class="d-flex align-items-center justify-content-between pb-3 mb-4 border-bottom">
+                <div>
+                    <h5 class="fw-bold mb-1">New Transaction Entry</h5>
+                    <small class="text-muted">Enter details below. Our ML model will assist in classification and fraud/anomaly detection.</small>
+                </div>
+                <span class="ai-pill"><i class="bi bi-magic"></i> AI-Assisted</span>
+            </div>
+
+            <form method="POST" action="{{ url_for('add_new_transaction') }}" id="transaction-form">
+                <!-- Transaction Type Toggle -->
+                <div class="mb-4">
+                    <label class="form-label small fw-bold text-secondary text-uppercase">Transaction Flow</label>
+                    <div class="d-flex gap-3">
+                        <div class="form-check form-check-inline p-3 border rounded-3 flex-fill bg-light">
+                            <input class="form-check-input" type="radio" name="type" id="type-expense" value="expense" checked>
+                            <label class="form-check-label fw-bold text-danger ms-2" for="type-expense">
+                                <i class="bi bi-arrow-up-right me-1"></i> Expense / Outflow
+                            </label>
+                        </div>
+                        <div class="form-check form-check-inline p-3 border rounded-3 flex-fill bg-light">
+                            <input class="form-check-input" type="radio" name="type" id="type-income" value="income">
+                            <label class="form-check-label fw-bold text-success ms-2" for="type-income">
+                                <i class="bi bi-arrow-down-left me-1"></i> Income / Inflow
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Description & Real-time AI Categorization Preview -->
+                <div class="mb-4">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <label class="form-label small fw-bold text-secondary text-uppercase mb-0">Transaction Description</label>
+                        <small class="text-muted">Type description to trigger live AI classification</small>
+                    </div>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light"><i class="bi bi-card-text text-muted"></i></span>
+                        <input type="text" name="description" id="txn-description" class="form-control form-control-lg fs-6" 
+                               placeholder="e.g. Swiggy gourmet dinner with team, Uber ride to airport, Netflix monthly 4K, Apollo pharmacy" required autocomplete="off">
+                    </div>
+
+                    <!-- Live AI Category Suggestion Pill (Populated via AJAX) -->
+                    <div id="ai-suggestion-box" class="ai-suggestion-box" style="display: none;">
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="bi bi-stars text-primary fs-5"></i>
+                            <span id="ai-suggestion-text" class="small text-dark"></span>
+                        </div>
+                        <button type="button" id="apply-suggestion-btn" class="btn btn-sm btn-outline-primary py-1 px-3 rounded-pill fw-semibold">
+                            Apply Category
+                        </button>
+                    </div>
+                </div>
+
+                <div class="row g-3 mb-4">
+                    <!-- Amount Field with Live Anomaly Check -->
+                    <div class="col-md-6">
+                        <label class="form-label small fw-bold text-secondary text-uppercase">Amount (₹)</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light fw-bold">₹</span>
+                            <input type="number" step="0.01" min="1" name="amount" id="txn-amount" class="form-control form-control-lg fs-6 fw-bold" placeholder="0.00" required>
+                        </div>
+                        
+                        <!-- Live Anomaly Warning Banner -->
+                        <div id="ai-anomaly-alert" class="alert alert-warning py-2 px-3 mt-2 small shadow-sm" style="display: none;">
+                            <div class="d-flex align-items-start gap-2">
+                                <i class="bi bi-exclamation-triangle-fill text-warning fs-5"></i>
+                                <div id="ai-anomaly-message">This transaction is unusually high compared to your typical spending behavior in this category.</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Category Selector -->
+                    <div class="col-md-6">
+                        <label class="form-label small fw-bold text-secondary text-uppercase">Expense Category</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light"><i class="bi bi-tags text-muted"></i></span>
+                            <select name="category" id="txn-category" class="form-select form-select-lg fs-6">
+                                <option value="Auto">Auto-Detect with AI</option>
+                                {% for cat in CATEGORIES %}
+                                    <option value="{{ cat }}">{{ cat }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <small class="text-muted" style="font-size: 0.72rem;">Leave as 'Auto-Detect' or let AI categorize automatically</small>
+                    </div>
+                </div>
+
+                <div class="row g-3 mb-4">
+                    <!-- Date -->
+                    <div class="col-md-6">
+                        <label class="form-label small fw-bold text-secondary text-uppercase">Transaction Date</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light"><i class="bi bi-calendar-event text-muted"></i></span>
+                            <input type="date" name="date" class="form-control" value="{{ today }}" required>
+                        </div>
+                    </div>
+
+                    <!-- Payment Method -->
+                    <div class="col-md-6">
+                        <label class="form-label small fw-bold text-secondary text-uppercase">Payment Method</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light"><i class="bi bi-credit-card text-muted"></i></span>
+                            <select name="payment_method" class="form-select">
+                                {% for m in PAYMENT_METHODS %}
+                                    <option value="{{ m }}">{{ m }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-end gap-2 pt-3 border-top">
+                    <a href="{{ url_for('transactions') }}" class="btn btn-light border px-4 py-2">Cancel</a>
+                    <button type="submit" class="btn btn-primary-custom px-4 py-2">
+                        <i class="bi bi-check2-circle"></i> Save Transaction
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

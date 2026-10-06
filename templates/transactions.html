@@ -1,0 +1,155 @@
+{% extends "base.html" %}
+
+{% block title %}Transactions - AI-Powered Personal Finance Advisor{% endblock %}
+{% block page_heading %}Transaction Ledger{% endblock %}
+{% block page_subheading %}Search, audit, and analyze all income and expenditures with ML anomaly detection tags{% endblock %}
+
+{% block content %}
+<div class="fin-card mb-4">
+    <!-- Filter Bar -->
+    <form method="GET" action="{{ url_for('transactions') }}" class="row g-2 align-items-center">
+        <!-- Search Keyword -->
+        <div class="col-md-3">
+            <div class="input-group input-group-sm">
+                <span class="input-group-text bg-white"><i class="bi bi-search text-muted"></i></span>
+                <input type="text" name="search" class="form-control" placeholder="Search merchant, notes..." value="{{ search }}">
+            </div>
+        </div>
+
+        <!-- Category Filter -->
+        <div class="col-md-2">
+            <select name="category" class="form-select form-select-sm" onchange="this.form.submit()">
+                <option value="All" {% if current_cat == 'All' %}selected{% endif %}>All Categories</option>
+                {% for cat in CATEGORIES %}
+                    <option value="{{ cat }}" {% if current_cat == cat %}selected{% endif %}>{{ cat }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <!-- Type Filter -->
+        <div class="col-md-2">
+            <select name="type" class="form-select form-select-sm" onchange="this.form.submit()">
+                <option value="" {% if not current_type %}selected{% endif %}>All Types</option>
+                <option value="expense" {% if current_type == 'expense' %}selected{% endif %}>Expenses Only</option>
+                <option value="income" {% if current_type == 'income' %}selected{% endif %}>Income Only</option>
+            </select>
+        </div>
+
+        <!-- Anomalies Only Toggle -->
+        <div class="col-md-3">
+            <div class="form-check form-switch pt-1">
+                <input class="form-check-input" type="checkbox" name="anomalies" value="1" id="anomCheck" {% if only_anomalies %}checked{% endif %} onchange="this.form.submit()">
+                <label class="form-check-label small fw-semibold text-danger" for="anomCheck">
+                    <i class="bi bi-shield-exclamation me-1"></i> Flagged Anomalies Only
+                </label>
+            </div>
+        </div>
+
+        <!-- Reset & Export Buttons -->
+        <div class="col-md-2 text-md-end">
+            <a href="{{ url_for('transactions') }}" class="btn btn-sm btn-light border me-1" title="Reset Filters"><i class="bi bi-arrow-counterclockwise"></i></a>
+            <a href="{{ url_for('export_csv') }}" class="btn btn-sm btn-outline-success" title="Download CSV"><i class="bi bi-download me-1"></i> Export</a>
+        </div>
+    </form>
+</div>
+
+<!-- Transactions Table Card -->
+<div class="fin-card">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h6 class="fw-bold mb-0 text-secondary">
+            Showing {{ transactions|length }} of {{ total_records }} Records
+            {% if only_anomalies %}<span class="badge bg-danger ms-2">Anomaly Filter Active</span>{% endif %}
+        </h6>
+        <span class="small text-muted">Page {{ page }} of {{ total_pages }}</span>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-fin">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Description</th>
+                    <th>Payment Method</th>
+                    <th>Category</th>
+                    <th class="text-end">Amount</th>
+                    <th>AI Audit Status</th>
+                    <th class="text-center">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if transactions %}
+                    {% for t in transactions %}
+                    <tr class="{% if t.is_anomaly %}anomaly-row{% endif %}">
+                        <td class="text-muted small" style="white-space: nowrap;">{{ t.date }}</td>
+                        <td>
+                            <div class="fw-semibold text-dark">{{ t.description }}</div>
+                            {% if t.is_anomaly and t.anomaly_reason %}
+                                <div class="text-danger small mt-1" style="font-size: 0.76rem;">
+                                    <i class="bi bi-info-circle-fill me-1"></i> {{ t.anomaly_reason }}
+                                </div>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="text-secondary small">{{ t.payment_method }}</span>
+                        </td>
+                        <td>
+                            <span class="badge badge-cat badge-{{ t.category }}">{{ t.category }}</span>
+                        </td>
+                        <td class="text-end fw-bold {% if t.type == 'income' %}text-success{% else %}text-danger{% endif %}">
+                            {{ '+' if t.type == 'income' else '-' }}₹{{ "{:,.2f}".format(t.amount) }}
+                        </td>
+                        <td>
+                            {% if t.is_anomaly %}
+                                <span class="badge-anomaly" data-bs-toggle="tooltip" data-bs-placement="top" title="{{ t.anomaly_reason }}">
+                                    <i class="bi bi-exclamation-triangle-fill"></i> Unusual Spend
+                                </span>
+                            {% else %}
+                                <span class="badge bg-light text-secondary border">
+                                    <i class="bi bi-check-circle text-success me-1"></i> Normal
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td class="text-center">
+                            <form method="POST" action="{{ url_for('remove_transaction', trans_id=t.id) }}" onsubmit="return confirm('Delete this transaction?');">
+                                <button type="submit" class="btn btn-sm btn-link text-danger p-0" title="Delete">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="7" class="text-center text-muted py-5">
+                            <i class="bi bi-inbox fs-1 d-block mb-2 text-muted"></i>
+                            No transactions match your current filters.
+                        </td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    {% if total_pages > 1 %}
+    <nav class="d-flex justify-content-between align-items-center mt-3 pt-3 border-top">
+        <div class="small text-muted">Page {{ page }} of {{ total_pages }}</div>
+        <ul class="pagination pagination-sm mb-0">
+            <li class="page-item {% if page <= 1 %}disabled{% endif %}">
+                <a class="page-link" href="{{ url_for('transactions', page=page-1, category=current_cat, type=current_type, search=search, anomalies='1' if only_anomalies else '') }}">Previous</a>
+            </li>
+            {% for p in range(1, total_pages + 1) %}
+                {% if p >= page - 2 and p <= page + 2 %}
+                    <li class="page-item {% if p == page %}active{% endif %}">
+                        <a class="page-link" href="{{ url_for('transactions', page=p, category=current_cat, type=current_type, search=search, anomalies='1' if only_anomalies else '') }}">{{ p }}</a>
+                    </li>
+                {% endif %}
+            {% endfor %}
+            <li class="page-item {% if page >= total_pages %}disabled{% endif %}">
+                <a class="page-link" href="{{ url_for('transactions', page=page+1, category=current_cat, type=current_type, search=search, anomalies='1' if only_anomalies else '') }}">Next</a>
+            </li>
+        </ul>
+    </nav>
+    {% endif %}
+</div>
+{% endblock %}

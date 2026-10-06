@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+
+{% block title %}Profile & Settings - AI-Powered Personal Finance Advisor{% endblock %}
+{% block page_heading %}User Profile & Configurations{% endblock %}
+{% block page_subheading %}Manage personal financial baselines, monthly declared income, and viva demonstration settings{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+    <!-- User Profile Settings -->
+    <div class="col-lg-7">
+        <div class="fin-card">
+            <h5 class="fw-bold mb-3 text-dark">Account Details</h5>
+            <form method="POST" action="{{ url_for('profile_page') }}">
+                <input type="hidden" name="action" value="update_profile">
+                
+                <div class="mb-3">
+                    <label class="form-label small fw-semibold text-secondary">Full Name</label>
+                    <input type="text" name="name" class="form-control" value="{{ user.name }}" required>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label small fw-semibold text-secondary">Registered Email Address</label>
+                    <input type="email" class="form-control bg-light" value="{{ user.email }}" disabled>
+                    <small class="text-muted" style="font-size: 0.72rem;">Email address cannot be modified</small>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label small fw-semibold text-secondary">Monthly Net Income (₹)</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light fw-bold">₹</span>
+                        <input type="number" step="500" name="monthly_income" class="form-control fw-bold" value="{{ user.monthly_income }}" required>
+                    </div>
+                    <small class="text-muted" style="font-size: 0.72rem;">Calibrates the 50/30/20 budget recommendation and regression feature calculations</small>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label small fw-semibold text-secondary">Occupation / Demographic</label>
+                    <input type="text" name="occupation" class="form-control" value="{{ user.occupation or 'Student / Professional' }}">
+                </div>
+
+                <div class="d-flex justify-content-end">
+                    <button type="submit" class="btn btn-primary-custom">
+                        <i class="bi bi-save me-1"></i> Update Profile
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Demonstration & Maintenance Controls -->
+    <div class="col-lg-5">
+        <div class="fin-card mb-4">
+            <h5 class="fw-bold mb-3 text-dark">Academic Presentation Tools</h5>
+            <p class="small text-muted mb-3">Quickly reload or refresh demonstration financial records to present full-year historical charts, anomalies, and predictions.</p>
+
+            <form method="POST" action="{{ url_for('profile_page') }}" onsubmit="return confirm('Refresh demonstration data? This will repopulate 12 months of rich transactions and savings goals.');">
+                <input type="hidden" name="action" value="reload_demo">
+                <button type="submit" class="btn btn-outline-primary w-100 py-2 d-flex align-items-center justify-content-center gap-2">
+                    <i class="bi bi-arrow-repeat"></i>
+                    <span>Reload 1-Year Demonstration Dataset</span>
+                </button>
+            </form>
+            <small class="text-muted d-block mt-2 text-center" style="font-size: 0.72rem;">Convenient for testing after adding experimental transactions</small>
+        </div>
+
+        <div class="fin-card">
+            <h6 class="fw-bold text-secondary text-uppercase small mb-3">Security & Storage Overview</h6>
+            <div class="small">
+                <div class="d-flex justify-content-between py-2 border-bottom">
+                    <span class="text-muted">Password Encryption:</span>
+                    <span class="fw-semibold text-success"><i class="bi bi-shield-check me-1"></i> Werkzeug Scrypt Hash</span>
+                </div>
+                <div class="d-flex justify-content-between py-2 border-bottom">
+                    <span class="text-muted">Database Engine:</span>
+                    <span class="fw-semibold text-dark">SQLite3 Relational DB</span>
+                </div>
+                <div class="d-flex justify-content-between py-2 border-bottom">
+                    <span class="text-muted">Session Isolation:</span>
+                    <span class="fw-semibold text-success">Strict User-Scoped Filtering</span>
+                </div>
+                <div class="d-flex justify-content-between py-2">
+                    <span class="text-muted">Model Storage:</span>
+                    <span class="fw-semibold text-dark">Joblib Serialized Binary</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,271 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - AI-Powered Personal Finance Advisor{% endblock %}
+{% block page_heading %}Financial Intelligence Dashboard{% endblock %}
+{% block page_subheading %}Overview of income, expenditure velocity, ML forecasts, and savings progress{% endblock %}
+
+{% block content %}
+<!-- Top Metric / KPI Cards -->
+<div class="row g-3 mb-4">
+    <!-- Total Income -->
+    <div class="col-xl-3 col-md-6">
+        <div class="fin-card">
+            <div class="fin-card-header">
+                <span class="kpi-title">Total Inflows</span>
+                <span class="badge bg-success-subtle text-success p-2 rounded-3"><i class="bi bi-arrow-down-left fs-6"></i></span>
+            </div>
+            <div class="kpi-value text-success">₹{{ "{:,.2f}".format(summary.total_income) }}</div>
+            <div class="d-flex align-items-center justify-content-between mt-2">
+                <span class="small text-muted">This Month: ₹{{ "{:,.0f}".format(summary.curr_month_income) }}</span>
+                <span class="badge bg-light text-secondary border">Income</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Total Expenses -->
+    <div class="col-xl-3 col-md-6">
+        <div class="fin-card">
+            <div class="fin-card-header">
+                <span class="kpi-title">Total Outflows</span>
+                <span class="badge bg-danger-subtle text-danger p-2 rounded-3"><i class="bi bi-arrow-up-right fs-6"></i></span>
+            </div>
+            <div class="kpi-value text-danger">₹{{ "{:,.2f}".format(summary.total_expense) }}</div>
+            <div class="d-flex align-items-center justify-content-between mt-2">
+                <span class="small text-muted">This Month: ₹{{ "{:,.0f}".format(summary.curr_month_expense) }}</span>
+                <span class="badge bg-light text-secondary border">Outflows</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Current Savings & Rate -->
+    <div class="col-xl-3 col-md-6">
+        <div class="fin-card">
+            <div class="fin-card-header">
+                <span class="kpi-title">Net Cumulative Savings</span>
+                <span class="badge bg-primary-subtle text-primary p-2 rounded-3"><i class="bi bi-shield-lock-fill fs-6"></i></span>
+            </div>
+            <div class="kpi-value text-primary">₹{{ "{:,.2f}".format(summary.net_savings) }}</div>
+            <div class="d-flex align-items-center justify-content-between mt-2">
+                <span class="small text-muted">Savings Rate: <strong>{{ summary.savings_rate }}%</strong></span>
+                <span class="badge bg-primary text-white">Target: 20%+</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ML Predicted Next-Month Expenses -->
+    <div class="col-xl-3 col-md-6">
+        <div class="fin-card ai-card">
+            <div class="fin-card-header">
+                <span class="kpi-title text-primary"><i class="bi bi-cpu me-1"></i> Predicted Next Month</span>
+                <span class="ai-pill"><i class="bi bi-stars"></i> ML Model</span>
+            </div>
+            <div class="kpi-value" style="color: #6366f1;">₹{{ "{:,.2f}".format(prediction.predicted_expense) }}</div>
+            <div class="d-flex align-items-center justify-content-between mt-2">
+                <span class="small text-muted">Range: ₹{{ "{:,.0f}".format(prediction.lower_bound) }} - ₹{{ "{:,.0f}".format(prediction.upper_bound) }}</span>
+                <span class="badge bg-info-subtle text-info border">{{ prediction.trend }}</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Secondary Stats Row (Anomalies, Dominant Category, Quick Goal Preview) -->
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="fin-card p-3 d-flex align-items-center justify-content-between">
+            <div>
+                <small class="text-muted text-uppercase fw-semibold" style="font-size: 0.75rem;">Highest Spend Driver</small>
+                <div class="fs-5 fw-bold text-dark mt-1">
+                    {% if highest_cat %}
+                        <span class="badge badge-cat badge-{{ highest_cat }}">{{ highest_cat }}</span>
+                        <span class="ms-2">₹{{ "{:,.2f}".format(highest_amt) }}</span>
+                    {% else %}
+                        <span class="text-muted">No data yet</span>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="p-3 bg-light rounded-circle text-primary">
+                <i class="bi bi-bar-chart-steps fs-4"></i>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="fin-card p-3 d-flex align-items-center justify-content-between">
+            <div>
+                <small class="text-muted text-uppercase fw-semibold" style="font-size: 0.75rem;">AI Anomaly Scanner</small>
+                <div class="fs-5 fw-bold text-dark mt-1">
+                    {% if summary.anomaly_count > 0 %}
+                        <span class="badge-anomaly"><i class="bi bi-exclamation-triangle-fill"></i> {{ summary.anomaly_count }} Irregular Spendings</span>
+                    {% else %}
+                        <span class="badge bg-success-subtle text-success"><i class="bi bi-check2-circle"></i> Clean Patterns</span>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="p-3 bg-danger-subtle rounded-circle text-danger">
+                <i class="bi bi-shield-shaded fs-4"></i>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="fin-card p-3 d-flex align-items-center justify-content-between">
+            <div>
+                <small class="text-muted text-uppercase fw-semibold" style="font-size: 0.75rem;">Savings Goals Tracking</small>
+                <div class="fs-5 fw-bold text-dark mt-1">
+                    {% set active_cnt = goals|selectattr('status', 'equalto', 'active')|list|length %}
+                    <span>{{ active_cnt }} Active Goals</span>
+                    <a href="{{ url_for('savings_goals_page') }}" class="ms-2 text-decoration-none small text-primary fw-semibold">View &rarr;</a>
+                </div>
+            </div>
+            <div class="p-3 bg-success-subtle rounded-circle text-success">
+                <i class="bi bi-piggy-bank fs-4"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Row: Monthly Cashflow & Category Breakdown -->
+<div class="row g-3 mb-4">
+    <!-- Monthly Income vs Expense Chart -->
+    <div class="col-lg-8">
+        <div class="fin-card h-100">
+            <div class="fin-card-header">
+                <div>
+                    <h5 class="fw-bold mb-0">Monthly Cashflow & Savings Velocity</h5>
+                    <small class="text-muted">Aggregated income vs expenses across past 12 months</small>
+                </div>
+                <span class="badge bg-light text-secondary border">Chart.js Visualizer</span>
+            </div>
+            <div style="height: 320px; position: relative;">
+                <canvas id="overviewChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Category Distribution Doughnut -->
+    <div class="col-lg-4">
+        <div class="fin-card h-100">
+            <div class="fin-card-header">
+                <div>
+                    <h5 class="fw-bold mb-0">Category Breakdown</h5>
+                    <small class="text-muted">Expenditure by domain</small>
+                </div>
+                <span class="badge bg-light text-secondary border">Lifetime</span>
+            </div>
+            <div style="height: 320px; position: relative;">
+                <canvas id="categoryChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Bottom Row: AI Insights & Recent Transactions -->
+<div class="row g-3 mb-4">
+    <!-- AI-Generated Insights -->
+    <div class="col-lg-5">
+        <div class="fin-card h-100">
+            <div class="fin-card-header">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="ai-pill"><i class="bi bi-robot"></i> AI Engine</span>
+                    <h5 class="fw-bold mb-0">Data-Driven Insights</h5>
+                </div>
+                <a href="{{ url_for('ai_insights_page') }}" class="small text-decoration-none text-primary fw-semibold">Full Analysis &rarr;</a>
+            </div>
+            
+            <div class="mt-2">
+                {% for ins in ai_insights[:4] %}
+                <div class="insight-item {{ ins.type }}">
+                    <div class="fs-5 mt-1">
+                        {% if ins.type == 'warning' %}
+                            <i class="bi bi-exclamation-triangle-fill text-warning"></i>
+                        {% elif ins.type == 'danger' %}
+                            <i class="bi bi-shield-exclamation text-danger"></i>
+                        {% elif ins.type == 'success' %}
+                            <i class="bi bi-check-circle-fill text-success"></i>
+                        {% else %}
+                            <i class="bi bi-info-circle-fill text-info"></i>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <div class="fw-bold text-dark" style="font-size: 0.9rem;">{{ ins.title }}</div>
+                        <div class="small text-secondary mt-1">{{ ins.message }}</div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Transactions Table with Anomaly Badges -->
+    <div class="col-lg-7">
+        <div class="fin-card h-100">
+            <div class="fin-card-header">
+                <div>
+                    <h5 class="fw-bold mb-0">Recent Transactions</h5>
+                    <small class="text-muted">Latest financial movements and automated tags</small>
+                </div>
+                <a href="{{ url_for('transactions') }}" class="btn btn-outline-secondary btn-sm">View All History</a>
+            </div>
+
+            <div class="table-responsive mt-2">
+                <table class="table table-fin">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Description</th>
+                            <th>Category</th>
+                            <th class="text-end">Amount</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if recent_txns %}
+                            {% for t in recent_txns %}
+                            <tr class="{% if t.is_anomaly %}anomaly-row{% endif %}">
+                                <td class="text-muted small" style="white-space: nowrap;">{{ t.date }}</td>
+                                <td>
+                                    <div class="fw-semibold text-dark text-truncate" style="max-width: 220px;" title="{{ t.description }}">{{ t.description }}</div>
+                                    <small class="text-muted">{{ t.payment_method }}</small>
+                                </td>
+                                <td>
+                                    <span class="badge badge-cat badge-{{ t.category }}">{{ t.category }}</span>
+                                </td>
+                                <td class="text-end fw-bold {% if t.type == 'income' %}text-success{% else %}text-danger{% endif %}">
+                                    {{ '+' if t.type == 'income' else '-' }}₹{{ "{:,.2f}".format(t.amount) }}
+                                </td>
+                                <td>
+                                    {% if t.is_anomaly %}
+                                        <span class="badge-anomaly" title="{{ t.anomaly_reason }}">
+                                            <i class="bi bi-exclamation-triangle"></i> Anomaly
+                                        </span>
+                                    {% else %}
+                                        <span class="badge bg-light text-secondary border">Normal</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="5" class="text-center text-muted py-4">No transactions found. Click "Add Transaction" to begin!</td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        if (window.renderOverviewChart) {
+            window.renderOverviewChart('overviewChart');
+        }
+        if (window.renderCategoryChart) {
+            window.renderCategoryChart('categoryChart');
+        }
+    });
+</script>
+{% endblock %}

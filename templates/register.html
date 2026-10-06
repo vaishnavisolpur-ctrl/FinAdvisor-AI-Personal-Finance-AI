@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+
+{% block title %}Register - AI-Powered Personal Finance Advisor{% endblock %}
+
+{% block public_content %}
+<div class="row justify-content-center align-items-center" style="min-height: 85vh;">
+    <div class="col-md-6 col-lg-5">
+        <div class="text-center mb-4">
+            <div class="d-inline-flex p-3 rounded-4 mb-2 shadow-sm" style="background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);">
+                <i class="bi bi-cpu-fill text-white fs-1"></i>
+            </div>
+            <h2 class="fw-bold mb-1">Create Account</h2>
+            <p class="text-muted small">Begin your data-driven personal wealth & expense management</p>
+        </div>
+
+        <div class="card border-0 shadow-lg rounded-4 p-4 bg-white">
+            <form method="POST" action="{{ url_for('register') }}">
+                <div class="mb-3">
+                    <label class="form-label small fw-semibold text-secondary">Full Name</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light border-end-0"><i class="bi bi-person text-muted"></i></span>
+                        <input type="text" name="name" class="form-control bg-light border-start-0" placeholder="e.g. Rahul Verma" required>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label small fw-semibold text-secondary">Email Address</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light border-end-0"><i class="bi bi-envelope text-muted"></i></span>
+                        <input type="email" name="email" class="form-control bg-light border-start-0" placeholder="rahul@example.com" required>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label small fw-semibold text-secondary">Monthly Net Income (₹)</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light border-end-0"><i class="bi bi-currency-rupee text-muted"></i></span>
+                        <input type="number" step="500" name="monthly_income" class="form-control bg-light border-start-0" placeholder="e.g. 60000" value="50000" required>
+                    </div>
+                    <small class="text-muted" style="font-size: 0.72rem;">Used by our ML regression and budget recommendation engines</small>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label small fw-semibold text-secondary">Password</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border-end-0"><i class="bi bi-lock text-muted"></i></span>
+                            <input type="password" name="password" class="form-control bg-light border-start-0" placeholder="••••••••" required>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label small fw-semibold text-secondary">Confirm Password</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border-end-0"><i class="bi bi-shield-check text-muted"></i></span>
+                            <input type="password" name="confirm_password" class="form-control bg-light border-start-0" placeholder="••••••••" required>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-grid mb-3 mt-2">
+                    <button type="submit" class="btn btn-primary fw-semibold py-2 rounded-3">
+                        <i class="bi bi-person-plus me-1"></i> Complete Registration
+                    </button>
+                </div>
+            </form>
+
+            <div class="text-center mt-3 pt-2 border-top">
+                <p class="small text-muted mb-0">Already registered? <a href="{{ url_for('login') }}" class="text-primary fw-semibold text-decoration-none">Sign In</a></p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

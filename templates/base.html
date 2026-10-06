@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}AI-Powered Personal Finance Advisor{% endblock %}</title>
+    <!-- Bootstrap 5 CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css') }}">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <!-- Custom Theme Stylesheet -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    {% block head_extra %}{% endblock %}
+</head>
+<body>
+
+{% if session.get('user_id') %}
+<div class="app-container">
+    <!-- Modern Sidebar Navigation -->
+    <aside class="sidebar">
+        <div class="sidebar-brand">
+            <div class="brand-icon">
+                <i class="bi bi-cpu-fill"></i>
+            </div>
+            <div>
+                <div style="line-height: 1.2;">FinAdvisor <span class="badge bg-primary text-white" style="font-size: 0.65rem;">AI</span></div>
+                <small style="font-size: 0.72rem; color: #94a3b8; font-weight: normal;">Personal Finance AI</small>
+            </div>
+        </div>
+
+        <nav class="sidebar-nav">
+            <div class="sidebar-label">Core Dashboard</div>
+            <a href="{{ url_for('dashboard') }}" class="nav-link-custom {% if request.endpoint == 'dashboard' %}active{% endif %}">
+                <span class="nav-icon"><i class="bi bi-grid-1x2-fill"></i></span>
+                <span>Dashboard</span>
+            </a>
+            <a href="{{ url_for('transactions') }}" class="nav-link-custom {% if request.endpoint == 'transactions' %}active{% endif %}">
+                <span class="nav-icon"><i class="bi bi-receipt"></i></span>
+                <span>Transactions</span>
+            </a>
+            <a href="{{ url_for('add_new_transaction') }}" class="nav-link-custom {% if request.endpoint == 'add_new_transaction' %}active{% endif %}">
+                <span class="nav-icon"><i class="bi bi-plus-circle-fill"></i></span>
+                <span>Add Transaction</span>
+            </a>
+            
+            <div class="sidebar-label">AI & Analytics</div>
+            <a href="{{ url_for('expense_prediction') }}" class="nav-link-custom {% if request.endpoint == 'expense_prediction' %}active{% endif %}">
+                <span class="nav-icon"><i class="bi bi-graph-up-arrow"></i></span>
+                <span>Expense Prediction</span>
+            </a>
+            <a href="{{ url_for('ai_insights_page') }}" class="nav-link-custom {% if request.endpoint == 'ai_insights_page' %}active{% endif %}">
+                <span class="nav-icon"><i class="bi bi-lightbulb-fill"></i></span>
+                <span>AI Insights</span>
+            </a>
+            <a href="{{ url_for('budget_recommendation') }}" class="nav-link-custom {% if request.endpoint == 'budget_recommendation' %}active{% endif %}">
+                <span class="nav-icon"><i class="bi bi-pie-chart-fill"></i></span>
+                <span>Budget Planner</span>
+            </a>
+            <a href="{{ url_for('savings_goals_page') }}" class="nav-link-custom {% if request.endpoint == 'savings_goals_page' %}active{% endif %}">
+                <span class="nav-icon"><i class="bi bi-piggy-bank-fill"></i></span>
+                <span>Savings Goals</span>
+            </a>
+
+            <div class="sidebar-label">Viva & Reports</div>
+            <a href="{{ url_for('ml_models_page') }}" class="nav-link-custom {% if request.endpoint == 'ml_models_page' %}active{% endif %}">
+                <span class="nav-icon"><i class="bi bi-diagram-3-fill"></i></span>
+                <span>ML Architecture</span>
+            </a>
+            <a href="{{ url_for('reports_page') }}" class="nav-link-custom {% if request.endpoint == 'reports_page' %}active{% endif %}">
+                <span class="nav-icon"><i class="bi bi-file-earmark-bar-graph-fill"></i></span>
+                <span>Monthly Report</span>
+            </a>
+            <a href="{{ url_for('profile_page') }}" class="nav-link-custom {% if request.endpoint == 'profile_page' %}active{% endif %}">
+                <span class="nav-icon"><i class="bi bi-person-gear"></i></span>
+                <span>Profile & Settings</span>
+            </a>
+        </nav>
+
+        <div class="sidebar-footer">
+            <div class="d-flex align-items-center gap-2">
+                <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; font-size: 0.85rem; font-weight: bold;">
+                    {{ current_user.name[0] if current_user else 'U' }}
+                </div>
+                <div style="line-height: 1.1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 140px;">
+                    <div style="font-size: 0.82rem; font-weight: 600; color: #fff;">{{ current_user.name if current_user else 'User' }}</div>
+                    <small style="font-size: 0.72rem; color: #94a3b8;">{{ current_user.occupation if current_user else 'Member' }}</small>
+                </div>
+            </div>
+            <a href="{{ url_for('logout') }}" class="text-danger" title="Logout" style="font-size: 1.1rem;">
+                <i class="bi bi-box-arrow-right"></i>
+            </a>
+        </div>
+    </aside>
+
+    <!-- Main View Wrapper -->
+    <div class="main-content">
+        <!-- Top App Bar -->
+        <header class="topbar">
+            <div>
+                <h1 class="page-title">{% block page_heading %}Dashboard{% endblock %}</h1>
+                <p class="page-subtitle">{% block page_subheading %}AI-Powered Wealth & Expenditure Intelligence{% endblock %}</p>
+            </div>
+            <div class="d-flex align-items-center gap-3">
+                <span class="badge bg-light text-dark border px-3 py-2">
+                    <i class="bi bi-calendar3 me-1 text-primary"></i> <span id="current-date-badge"></span>
+                </span>
+                <a href="{{ url_for('add_new_transaction') }}" class="btn btn-primary-custom btn-sm">
+                    <i class="bi bi-plus-lg"></i> Add Transaction
+                </a>
+            </div>
+        </header>
+
+        <!-- Flash Alert Messages -->
+        <div class="container-fluid px-4 pt-3">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }} alert-dismissible fade show shadow-sm" role="alert">
+                            <i class="bi {% if category == 'success' %}bi-check-circle-fill{% elif category == 'danger' %}bi-x-circle-fill{% elif category == 'warning' %}bi-exclamation-triangle-fill{% else %}bi-info-circle-fill{% endif %} me-2"></i>
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <!-- Dynamic Content Body -->
+            {% block content %}{% endblock %}
+        </div>
+
+        <!-- Footer -->
+        <footer class="mt-auto py-3 px-4 text-center text-muted border-top bg-white no-print" style="font-size: 0.82rem;">
+            AI-Powered Personal Finance Advisor &bull; Final-Year AIML Project &bull; Powered by Scikit-Learn, Flask & SQLite
+        </footer>
+    </div>
+</div>
+{% else %}
+    <!-- Public / Guest Container -->
+    <div class="container py-4">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} alert-dismissible fade show shadow-sm max-w-md mx-auto" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        {% block public_content %}{% endblock %}
+    </div>
+{% endif %}
+
+<!-- Bootstrap 5 Bundle JS -->
+<script src="{{ url_for('static', filename='js/bootstrap.bundle.min.js') }}"></script>
+<!-- Chart.js UMD -->
+<script src="{{ url_for('static', filename='js/chart.umd.min.js') }}"></script>
+<!-- Main Application Script -->
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+<script>
+    const dtEl = document.getElementById('current-date-badge');
+    if (dtEl) {
+        dtEl.textContent = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    }
+</script>
+{% block scripts %}{% endblock %}
+</body>
+</html>
